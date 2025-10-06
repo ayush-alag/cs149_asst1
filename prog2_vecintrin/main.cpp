@@ -249,7 +249,47 @@ void clampedExpVector(float* values, int* exponents, float* output, int N) {
   // Your solution should work for any value of
   // N and VECTOR_WIDTH, not just when VECTOR_WIDTH divides N
   //
-  
+
+  __cs149_vec_float x;
+  __cs149_vec_int y;
+  __cs149_vec_float result;
+  __cs149_vec_int zero = _cs149_vset_int(0);
+  __cs149_vec_int one = _cs149_vset_int(1);
+  __cs149_vec_float ninePointNineNine = _cs149_vset_float(9.999999f);
+  __cs149_mask maskAll, maskIsExpZero, maskIsExpNotZero, maskIsOverClamp;
+
+  for (int i=0; i<N; i+=VECTOR_WIDTH) {
+    // handle the nondivisible case
+    int remaining = N - i;
+
+    // All ones
+    maskAll = _cs149_init_ones(remaining);
+
+    // Load vector of vals, exponents from contiguous memory addresses
+    _cs149_vload_float(x, values+i, maskAll);
+    _cs149_vload_int(y, exponents+i, maskAll);
+
+    // set result to 1 everywhere
+    _cs149_vset_float(result, 1.f, maskAll);
+
+    // check where exponent is not zer
+    _cs149_vgt_int(maskIsExpNotZero, y, zero, maskAll);
+
+    // multiply result by x until exponent is 0
+    int count_bits = _cs149_cntbits(maskIsExpNotZero);
+    while (count_bits > 0) {
+      _cs149_vmult_float(result, result, x, maskIsExpNotZero);
+      _cs149_vsub_int(y, y, one, maskIsExpNotZero);
+      _cs149_vgt_int(maskIsExpNotZero, y, zero, maskIsExpNotZero);
+      count_bits = _cs149_cntbits(maskIsExpNotZero);
+    }
+
+    // clamp result to 9.999999 if it is over
+    _cs149_vgt_float(maskIsOverClamp, result, ninePointNineNine, maskAll);
+    _cs149_vset_float(result, 9.999999f, maskIsOverClamp);
+
+    _cs149_vstore_float(output+i, result, maskAll);
+  }
 }
 
 // returns the sum of all elements in values
@@ -266,11 +306,11 @@ float arraySumSerial(float* values, int N) {
 // You can assume N is a multiple of VECTOR_WIDTH
 // You can assume VECTOR_WIDTH is a power of 2
 float arraySumVector(float* values, int N) {
-  
+
   //
   // CS149 STUDENTS TODO: Implement your vectorized version of arraySumSerial here
   //
-  
+
   for (int i=0; i<N; i+=VECTOR_WIDTH) {
 
   }
