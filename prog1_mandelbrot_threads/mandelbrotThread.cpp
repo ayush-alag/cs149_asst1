@@ -1,3 +1,4 @@
+#include <cmath>
 #include <stdio.h>
 #include <thread>
 
@@ -36,6 +37,37 @@ void workerThreadStart(WorkerArgs * const args) {
     // half of the image and thread 1 could compute the bottom half.
 
     printf("Hello world from thread %d\n", args->threadId);
+
+    const int threadId = args->threadId;
+    const int numThreads = args->numThreads;
+    const int height = args->height;
+
+    // Start timing for this thread
+    double threadStartTime = CycleTimer::currentSeconds();
+
+    printf("Thread %d starting work\n", threadId);
+
+    for (int i = threadId; i < height; i += numThreads) {
+        const int singleRow = 1;
+
+        mandelbrotSerial(args->x0,
+                        args->y0,
+                        args->x1,
+                        args->y1,
+                        args->width,
+                        args->height,
+                        i,
+                        singleRow,
+                        args->maxIterations,
+                        args->output);
+    }
+
+    // End timing for this thread
+    double threadEndTime = CycleTimer::currentSeconds();
+    double threadTime = threadEndTime - threadStartTime;
+
+    printf("Thread %d completed: %.3f ms\n",
+           threadId, threadTime * 1000);
 }
 
 //
@@ -62,7 +94,7 @@ void mandelbrotThread(
     WorkerArgs args[MAX_THREADS];
 
     for (int i=0; i<numThreads; i++) {
-      
+
         // TODO FOR CS149 STUDENTS: You may or may not wish to modify
         // the per-thread arguments here.  The code below copies the
         // same arguments for each thread
@@ -75,7 +107,7 @@ void mandelbrotThread(
         args[i].maxIterations = maxIterations;
         args[i].numThreads = numThreads;
         args[i].output = output;
-      
+
         args[i].threadId = i;
     }
 
@@ -85,7 +117,7 @@ void mandelbrotThread(
     for (int i=1; i<numThreads; i++) {
         workers[i] = std::thread(workerThreadStart, &args[i]);
     }
-    
+
     workerThreadStart(&args[0]);
 
     // join worker threads
