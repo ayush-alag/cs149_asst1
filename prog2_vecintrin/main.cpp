@@ -321,8 +321,8 @@ float arraySumVector(float* values, int N) {
     _cs149_vadd_float(sum, sum, load_values, maskAll);
   }
 
-  // reduce the accumulated vector using hadd and interleave log width times
-  for (int step = 0; step < __builtin_ctz(VECTOR_WIDTH); step++) {
+  int num_steps = (int) log2(VECTOR_WIDTH);
+  for (int step = 0; step < num_steps; step++) {
     // add adjacent elements
     _cs149_hadd_float(sum, sum);
     // interleave the elements for the next sum
