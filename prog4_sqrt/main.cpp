@@ -32,9 +32,14 @@ int main() {
         // TODO: CS149 students.  Attempt to change the values in the
         // array here to meet the instructions in the handout: we want
         // to you generate best and worse-case speedups
-        
+
         // starter code populates array with random input values
-        values[i] = .001f + 2.998f * static_cast<float>(rand()) / RAND_MAX;
+        // values[i] = .001f + 2.998f * static_cast<float>(rand()) / RAND_MAX;
+        if (i % 8 == 0) {
+            values[i] = 2.999f;
+        } else {
+            values[i] = 1.0f;
+        }
     }
 
     // generate a gold version to check results
